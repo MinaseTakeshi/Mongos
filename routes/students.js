@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Student = require('../models/Student');
+const requireAuth = require('../middleware/auth');
 
 // 4.2 GET /students (Fetch All Records)
-router.get('/', async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
     try {
         const students = await Student.find();
         res.json(students);
@@ -40,7 +41,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // 4.5 DELETE /students/:id (Remove a Record)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAuth, async (req, res) => {
     try {
         const deletedStudent = await Student.findByIdAndDelete(req.params.id);
         if (!deletedStudent) {
