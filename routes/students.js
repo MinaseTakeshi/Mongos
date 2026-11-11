@@ -3,17 +3,37 @@ const router = express.Router();
 const Student = require('../models/Student');
 const requireAuth = require('../middleware/auth');
 
-// 4.2 GET /students (Fetch All Records)
+router.get('/:id', requireAuth, async (req, res) => {
+    try {
+        const stats = await Student.aggregate([
+            { $match: { isActive: true } },
+            {
+                $group: {
+                    _id: '$age',
+                    totalStudents: { $sum: 1}
+                }
+            },
+            {
+                $sort: { totalStudents: -1}
+            }
+        ]);
+        res.json(stats);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.get('/', requireAuth, async (req, res) => {
     try {
-        const students = await Student.find();
+        const students = await Student.find()
+            .populate('user', 'name email -_id')
         res.json(students);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// 4.3 POST /students (Create a New Record)
+// 4.3 POST /students (Create a New Record)`
 router.post('/', async (req, res) => {
     try {
         const newStudent = await Student.create(req.body);
@@ -48,7 +68,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
             return res.status(404).json({ error: 'Student not found' });
         }
         res.json({ message: 'Student deleted successfully', deletedStudent });
-    } catch (err) {
+    } catch (err) {``
         res.status(500).json({ error: err.message });
     }
 });
